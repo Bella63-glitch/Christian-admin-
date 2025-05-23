@@ -1,101 +1,370 @@
-<!doctype html>
-<html> 
- <head> 
-  <title>Christian Admin Panel</title> 
-  <script src="https://cdn.backendless.com/sdk/js/latest/backendless.min.js"></script> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Christian Admin Panel</title>
+  <script src="https://cdn.jsdelivr.net/npm/backendless@7.0.5/dist/backendless.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial; padding: 20px; }
-    input, textarea, select { display: block; margin-bottom: 10px; width: 100%; }
-    label { font-weight: bold; margin-top: 10px; }
-    .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-  </style> 
- </head> 
- <body> 
-  <h1>Christian Admin Panel</h1> 
-  <h2>Upload Product</h2> 
-  <form id="productForm"> <label>Product Name</label> 
-   <input type="text" id="name" required><label>Description</label> <textarea id="description"></textarea> <label>Product Type</label> <select id="type"> <option>Hoodie</option> <option>T-Shirt</option> <option>Cap</option> <option>Trucker Hat</option> <option>Phone Case</option> </select> <label>Collection</label> <select id="collection"> <option>Faith Over Fear</option> <option>Grace &amp; Truth</option> <option>Set Apart</option> <option>Bold Believers</option> </select> <label>Design Name</label> 
-   <input type="text" id="design"> <label>Product Images</label> 
-   <input type="file" id="images" multiple> <label>Price (KES)</label> 
-   <input type="number" id="price"> <label>Sizes Available</label> 
-   <input type="checkbox" name="sizes" value="S"> S 
-   <input type="checkbox" name="sizes" value="M"> M 
-   <input type="checkbox" name="sizes" value="L"> L 
-   <input type="checkbox" name="sizes" value="XL"> XL <label>Colors Available</label> 
-   <input type="text" id="colors"> <label>In Stock</label> 
-   <input type="checkbox" id="stock"> <label>Featured Product?</label> 
-   <input type="checkbox" id="featured"> <button type="submit">Submit</button> 
-  </form> 
-  <h2>All Products</h2> 
-  <div id="productList"></div> 
-  <script>
-    Backendless.initApp("949868FF-B758-4329-8784-4EEFC4F6A335", "80475F33-5931-4259-BFAE-CBEA98D45CB5");
+    body {
+      font-family: 'Roboto', sans-serif;
+      padding: 20px;
+      background: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+    }
 
-    const form = document.getElementById("productForm");
-    const list = document.getElementById("productList");
+    h2 {
+      color: #007b5e;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 10px;
+      margin-top: 30px;
+      font-weight: 700;
+    }
 
-    form.onsubmit = async function(e) {
-      e.preventDefault();
-      const files = document.getElementById("images").files;
-      const uploaded = [];
+    form {
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
 
-      for (const file of files) {
-        const result = await Backendless.Files.upload(file, "product-images", true);
-        uploaded.push(result.fileURL);
+    input, select, textarea {
+      display: block;
+      margin-bottom: 15px;
+      padding: 12px;
+      width: 100%; /* Make inputs fill container */
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    input[type="file"] {
+      padding: 5px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 12px 25px;
+      background: #007b5e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background: #005f4a;
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .product {
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .product-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .product-header strong {
+      color: #007b5e;
+      font-size: 1.2em;
+    }
+
+    .product-details {
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .product-price {
+      font-weight: 700;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    .product-actions {
+      margin-top: 10px;
+      text-align: right;
+    }
+
+    .product-actions button {
+      background: #dc3545;
+      padding: 8px 15px;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .product-actions button:hover {
+      background: #c82333;
+      transform: none;
+    }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      /* Stack form elements vertically on smaller screens */
+      form {
+        padding: 15px;
       }
 
-      const selectedSizes = [...document.querySelectorAll("input[name='sizes']:checked")].map(cb => cb.value);
+      input, select, textarea {
+        margin-bottom: 10px;
+        font-size: 14px; /* Smaller font size on mobile */
+      }
 
-      const product = {
-        name: document.getElementById("name").value,
-        description: document.getElementById("description").value,
-        type: document.getElementById("type").value,
-        collection: document.getElementById("collection").value,
-        design: document.getElementById("design").value,
-        images: uploaded,
-        price: Number(document.getElementById("price").value),
-        sizes: selectedSizes,
-        colors: document.getElementById("colors").value,
-        inStock: document.getElementById("stock").checked,
-        featured: document.getElementById("featured").checked
-      };
+      button {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
 
-      await Backendless.Data.of("products").save(product);
-      alert("Product saved");
-      loadProducts();
-      form.reset();
-    };
+      .product {
+        flex-direction: column; /* Stack product details */
+        align-items: flex-start; /* Align to the start */
+      }
+
+      .product-header {
+        flex-direction: column; /* Stack header elements */
+        align-items: flex-start;
+      }
+
+      .product-actions {
+        text-align: left; /* Align delete button to the left */
+        margin-top: 5px; /* Adjust margin */
+      }
+
+      .product-details {
+        margin-bottom: 10px; /* Add space below details */
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Upload Product</h2>
+  <div id="formMessage" class="message" style="display:none;"></div>
+  <form id="productForm">
+    <input type="text" id="name" placeholder="Product Name" required>
+    <textarea id="description" placeholder="Description"></textarea>
+    <select id="type">
+      <option value="Hoodie">Hoodie</option>
+      <option value="T-Shirt">T-Shirt</option>
+      <option value="Cap">Cap</option>
+      <option value="Trucker Hat">Trucker Hat</option>
+      <option value="Phone Case">Phone Case</option>
+    </select>
+    <select id="collection">
+      <option value="Faith Over Fear">Faith Over Fear</option>
+      <option value="Grace & Truth">Grace & Truth</option>
+      <option value="Set Apart">Set Apart</option>
+      <option value="Bold Believers">Bold Believers</option>
+    </select>
+    <input type="text" id="design" placeholder="Design Name">
+    <input type="number" id="price" placeholder="Price (KES)" step="0.01" required>
+    <input type="text" id="sizes" placeholder="Sizes (e.g., S,M,L,XL)">
+    <input type="text" id="colors" placeholder="Colors Available (e.g., Red, Blue, Black)">
+    <label for="images">Product Images (multiple files)</label>
+    <input type="file" id="images" multiple>
+    <label><input type="checkbox" id="inStock"> In Stock</label>
+    <label><input type="checkbox" id="featured"> Featured Product</label>
+    <button type="submit" id="submitButton">Submit Product</button>
+  </form>
+
+  <h2>Products</h2>
+  <div id="productList"></div>
+
+  <script>
+    const APP_ID = "949868FF-B758-4329-8784-4EEFC4F6A335";
+    const API_KEY = "80475F33-5931-4259-BFAE-CBEA98D45CB5";
+    const BUCKET_NAME = "product-images";
+
+    Backendless.initApp(APP_ID, API_KEY);
+
+    const form = document.getElementById("productForm");
+    const productList = document.getElementById("productList");
+    const submitButton = document.getElementById("submitButton");
+    const formMessage = document.getElementById("formMessage");
+
+    function showMessage(msg, type) {
+      formMessage.textContent = msg;
+      formMessage.className = `message ${type}`;
+      formMessage.style.display = 'block';
+      setTimeout(() => {
+        formMessage.style.display = 'none';
+      }, 3000);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      submitButton.disabled = true;
+      submitButton.textContent = "Uploading...";
+
+      try {
+        const name = document.getElementById("name").value;
+        const description = document.getElementById("description").value;
+        const type = document.getElementById("type").value;
+        const collection = document.getElementById("collection").value;
+        const design = document.getElementById("design").value;
+        const price = parseFloat(document.getElementById("price").value);
+        const sizes = document.getElementById("sizes").value;
+        const colors = document.getElementById("colors").value;
+        const inStock = document.getElementById("inStock").checked;
+        const featured = document.getElementById("featured").checked;
+        const files = document.getElementById("images").files;
+
+        let imageUrls = [];
+        if (files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            showMessage(`Uploading image ${i + 1} of ${files.length}...`, 'info');
+            const result = await Backendless.Files.upload(file, BUCKET_NAME, true);
+            imageUrls.push(result.fileURL);
+          }
+        }
+
+        const product = {
+          name, description, type, collection, design,
+          price, sizes, colors, inStock, featured,
+          images: imageUrls.length > 0 ? imageUrls : null
+        };
+
+        await Backendless.Data.of("products").save(product);
+        showMessage("Product uploaded successfully!", 'success');
+        form.reset();
+        loadProducts();
+
+      } catch (error) {
+        console.error("Product upload failed:", error);
+        showMessage(`Error uploading product: ${error.message || error}`, 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Submit Product";
+      }
+    });
 
     async function loadProducts() {
-      const products = await Backendless.Data.of("products").find();
-      list.innerHTML = "";
-
-      products.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `
-          <h3>${p.name}</h3>
-          <p>${p.description}</p>
-          <p>Price: KES ${p.price}</p>
-          <img src="${p.images?.[0] || ''}" width="100" />
-          <p><button onclick="editProduct('${p.objectId}')">Edit</button>
-          <button onclick="deleteProduct('${p.objectId}')">Delete</button></p>
-        `;
-        list.appendChild(div);
-      });
+      try {
+        const products = await Backendless.Data.of("products").find();
+        productList.innerHTML = "";
+        if (products.length === 0) {
+          productList.innerHTML = "<p>No products found. Start by uploading one!</p>";
+        } else {
+          products.forEach(product => {
+            const div = document.createElement("div");
+            div.className = "product";
+            div.innerHTML = `
+              <div class="product-header">
+                <strong>${product.name}</strong>
+                <div class="product-actions">
+                  <button onclick="deleteProduct('${product.objectId}')">Delete</button>
+                </div>
+              </div>
+              <div class="product-details">
+                ${product.description ? product.description + '<br>' : ''}
+                Type: ${product.type || 'N/A'}<br>
+                Collection: ${product.collection || 'N/A'}<br>
+                Design: ${product.design || 'N/A'}<br>
+                Sizes: ${product.sizes || 'N/A'}<br>
+                Colors: ${product.colors || 'N/A'}<br>
+                In Stock: ${product.inStock ? 'Yes' : 'No'}<br>
+                Featured: ${product.featured ? 'Yes' : 'No'}<br>
+              </div>
+              <div class="product-price">KES ${product.price ? product.price.toFixed(2) : 'N/A'}</div>
+              ${product.images && product.images.length > 0 ?
+                `<img src="${product.images[0]}" alt="${product.name}" style="max-width: 100px; height: auto; border-radius: 5px; margin-top: 10px;">`
+                : ''}
+            `;
+            productList.appendChild(div);
+          });
+        }
+      } catch (error) {
+        console.error("Error loading products:", error);
+        productList.innerHTML = `<p class="message error">Error loading products: ${error.message || error}</p>`;
+      }
     }
 
     async function deleteProduct(id) {
-      await Backendless.Data.of("products").remove(id);
-      alert("Product deleted");
-      loadProducts();
-    }
+      if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
+        return;
+      }
 
-    function editProduct(id) {
-      alert("Editing not yet implemented. Select manually or reload with edit fields.");
+      try {
+        await Backendless.Data.of("products").remove({ objectId: id });
+        showMessage("Product deleted successfully!", 'success');
+        loadProducts();
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        showMessage(`Error deleting product: ${error.message || error}`, 'error');
+      }
     }
 
     loadProducts();
-  </script> 
- 
-</body></html>
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
