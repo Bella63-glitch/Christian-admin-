@@ -1,0 +1,101 @@
+<!doctype html>
+<html> 
+ <head> 
+  <title>Christian Admin Panel</title> 
+  <script src="https://cdn.backendless.com/sdk/js/latest/backendless.min.js"></script> 
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, textarea, select { display: block; margin-bottom: 10px; width: 100%; }
+    label { font-weight: bold; margin-top: 10px; }
+    .product { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+  </style> 
+ </head> 
+ <body> 
+  <h1>Christian Admin Panel</h1> 
+  <h2>Upload Product</h2> 
+  <form id="productForm"> <label>Product Name</label> 
+   <input type="text" id="name" required><label>Description</label> <textarea id="description"></textarea> <label>Product Type</label> <select id="type"> <option>Hoodie</option> <option>T-Shirt</option> <option>Cap</option> <option>Trucker Hat</option> <option>Phone Case</option> </select> <label>Collection</label> <select id="collection"> <option>Faith Over Fear</option> <option>Grace &amp; Truth</option> <option>Set Apart</option> <option>Bold Believers</option> </select> <label>Design Name</label> 
+   <input type="text" id="design"> <label>Product Images</label> 
+   <input type="file" id="images" multiple> <label>Price (KES)</label> 
+   <input type="number" id="price"> <label>Sizes Available</label> 
+   <input type="checkbox" name="sizes" value="S"> S 
+   <input type="checkbox" name="sizes" value="M"> M 
+   <input type="checkbox" name="sizes" value="L"> L 
+   <input type="checkbox" name="sizes" value="XL"> XL <label>Colors Available</label> 
+   <input type="text" id="colors"> <label>In Stock</label> 
+   <input type="checkbox" id="stock"> <label>Featured Product?</label> 
+   <input type="checkbox" id="featured"> <button type="submit">Submit</button> 
+  </form> 
+  <h2>All Products</h2> 
+  <div id="productList"></div> 
+  <script>
+    Backendless.initApp("949868FF-B758-4329-8784-4EEFC4F6A335", "80475F33-5931-4259-BFAE-CBEA98D45CB5");
+
+    const form = document.getElementById("productForm");
+    const list = document.getElementById("productList");
+
+    form.onsubmit = async function(e) {
+      e.preventDefault();
+      const files = document.getElementById("images").files;
+      const uploaded = [];
+
+      for (const file of files) {
+        const result = await Backendless.Files.upload(file, "product-images", true);
+        uploaded.push(result.fileURL);
+      }
+
+      const selectedSizes = [...document.querySelectorAll("input[name='sizes']:checked")].map(cb => cb.value);
+
+      const product = {
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        type: document.getElementById("type").value,
+        collection: document.getElementById("collection").value,
+        design: document.getElementById("design").value,
+        images: uploaded,
+        price: Number(document.getElementById("price").value),
+        sizes: selectedSizes,
+        colors: document.getElementById("colors").value,
+        inStock: document.getElementById("stock").checked,
+        featured: document.getElementById("featured").checked
+      };
+
+      await Backendless.Data.of("products").save(product);
+      alert("Product saved");
+      loadProducts();
+      form.reset();
+    };
+
+    async function loadProducts() {
+      const products = await Backendless.Data.of("products").find();
+      list.innerHTML = "";
+
+      products.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <h3>${p.name}</h3>
+          <p>${p.description}</p>
+          <p>Price: KES ${p.price}</p>
+          <img src="${p.images?.[0] || ''}" width="100" />
+          <p><button onclick="editProduct('${p.objectId}')">Edit</button>
+          <button onclick="deleteProduct('${p.objectId}')">Delete</button></p>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    async function deleteProduct(id) {
+      await Backendless.Data.of("products").remove(id);
+      alert("Product deleted");
+      loadProducts();
+    }
+
+    function editProduct(id) {
+      alert("Editing not yet implemented. Select manually or reload with edit fields.");
+    }
+
+    loadProducts();
+  </script> 
+ 
+</body></html>
